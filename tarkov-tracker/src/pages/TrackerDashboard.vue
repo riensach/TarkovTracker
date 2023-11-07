@@ -60,6 +60,7 @@ import { defineAsyncComponent } from "vue";
 import { useTarkovData } from "@/composables/tarkovdata";
 import { useProgressStore } from "@/stores/progress";
 import { useTarkovStore } from "@/stores/tarkov.js";
+import { useUserStore } from "@/stores/user";
 const TrackerStat = defineAsyncComponent(() =>
   import("@/components/TrackerStat.vue")
 );
@@ -70,6 +71,11 @@ const TrackerTip = defineAsyncComponent(() =>
 const { tasks, objectives, neededItemTaskObjectives } = useTarkovData();
 const progressStore = useProgressStore();
 const tarkovStore = useTarkovStore();
+const userStore = useUserStore();
+
+const hideNonKappaTasks = computed({
+  get: () => userStore.getHideNonKappaTasks,
+});
 
 const totalTasks = computed(() => {
   let relevantTasks = tasks.value.filter((task) => task.factionName == "Any" || task.factionName == tarkovStore.getPMCFaction).length;
@@ -82,6 +88,11 @@ const totalTasks = computed(() => {
       tasksWithAlternatives = tasksWithAlternatives.filter((task) => task.id != alternative);
     });
   });
+  if (hideNonKappaTasks.value) {
+    relevantTasks = relevantTasks.filter(
+      (task) => task.kappaRequired == true
+    );
+  }
   return relevantTasks;
 });
 
@@ -100,9 +111,16 @@ const completedObjectives = computed(() => {
 });
 
 const completedTasks = computed(() => {
-  return Object.values(progressStore.tasksCompletions).filter(
-    (task) => task.self === true
-  ).length;
+  if (hideNonKappaTasks.value) {
+    return Object.values(progressStore.tasksCompletions).filter(
+      (task) => task.self === true,
+      (task) => task.kappaRequired == true
+    ).length;
+  } else {
+    return Object.values(progressStore.tasksCompletions).filter(
+      (task) => task.self === true
+    ).length;
+  }
 });
 
 const completedTaskItems = computed(() => {
