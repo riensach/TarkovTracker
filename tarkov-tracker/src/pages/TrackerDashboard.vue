@@ -113,8 +113,7 @@ const completedObjectives = computed(() => {
 const completedTasks = computed(() => {
   if (hideNonKappaTasks.value) {
     return Object.values(progressStore.tasksCompletions).filter(
-      (task) => task.self === true,
-      (task) => task.kappaRequired == true
+      (task) => task.self === true && (task) => task.kappaRequired == true
     ).length;
   } else {
     return Object.values(progressStore.tasksCompletions).filter(
